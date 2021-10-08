@@ -4,7 +4,7 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
-import { asyncIteratecollection, asyncWritetoCollection, asyncGetBrandsinRetail } from "./mongodb"
+import { asyncIteratecollection, asyncWritetoCollection, asyncGetBrandsinRetail, asyncGetretailerProducts } from "./mongodb"
 import GenerateUniqueRandom from "./randomID"
 
 dotenv.config();
@@ -39,25 +39,50 @@ io.on('connection', (socket) => {
     // View all sockets in a room
     console.log(io.sockets.adapter.rooms);
 
-    // Insert new retailer to database
+    // UNIVERSAL SOCKET EVENTS
+
+    // Insert new company to database
     socket.on("createNewcompany", (payload) => {
         // Payload attributes:
         // Email
         // Name
         // Phone number
         // Address
-        // Type: Whether it's a brand or not
-        let collectionName;
-        if (payload.type == "retail") {
-            collectionName = "Retailers";
-        } else {
-            collectionName = "Brands";
-        }
+        // Type: Whether it's a brand or not, string?
+        let collectionName = checkType(payload.type);
         asyncWritetoCollection(mongoclient, payload, collectionName);
     });
 
-    socket.on("GetAllbrands", (payload) => {
-        asyncGetBrandsinRetail(mongoclient, socket, payload)
+    // View valid retailers selling a specific product 
+    socket.on("getValidretail", (payload) => {
+        // Payload:
+        // selfEmail: String
+        // productID: Integer
+        // brandEmail: String
+        // Type: Whether it's a brand or not, string?
+        let userType = checkType(payload.type);
+        asyncGetretailerProducts(mongoclient, socket, payload, userType);
     })
+
+    // <---------------- RETAILER SPECIFIC SOCKET EVENTS ----------------------->
+    socket.on("GetAllbrands", (payload) => {
+        asyncGetBrandsinRetail(mongoclient, socket, payload);
+    });
+
+    socket.on("updateQuantity", (payload => {
+        // Payload:
+        // productID : id of product to modify
+        // email: retailer email
+    }))
+
+    
     
 })
+
+function checkType(clientType) {
+    if (clientType == "retail") {
+        return "Retailers";
+    } else {
+        return "Brands";
+    }
+}
