@@ -1,0 +1,26 @@
+{
+  "name": "fsyncbackend",
+  "version": "1.0.0",
+  "description": "HackHarvard 2021 FSync Backend",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start" : "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vu-dylan/fsyncbackend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vu-dylan/fsyncbackend/issues"
+  },
+  "homepage": "https://github.com/vu-dylan/fsyncbackend#readme",
+  "dependencies": {
+    "axios": "^0.22.0",
+    "express": "^4.17.1",
+    "mongodb": "^4.1.3",
+    "socket.io": "^4.2.0"
+  }
+}
