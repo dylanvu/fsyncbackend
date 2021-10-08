@@ -4,6 +4,9 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
+import { asyncIteratecollection, asyncWritetoCollection, asyncGetBrandsinRetail } from "./mongodb"
+import GenerateUniqueRandom from "./randomID"
+
 dotenv.config();
 
 const APP = express();
@@ -22,6 +25,7 @@ const MongoConnect = async () => {
         console.error(e);
     }
 }
+
 MongoConnect();
 
 // Create socket.io server
@@ -35,5 +39,25 @@ io.on('connection', (socket) => {
     // View all sockets in a room
     console.log(io.sockets.adapter.rooms);
 
+    // Insert new retailer to database
+    socket.on("createNewcompany", (payload) => {
+        // Payload attributes:
+        // Email
+        // Name
+        // Phone number
+        // Address
+        // Type: Whether it's a brand or not
+        let collectionName;
+        if (payload.type == "retail") {
+            collectionName = "Retailers";
+        } else {
+            collectionName = "Brands";
+        }
+        asyncWritetoCollection(mongoclient, payload, collectionName);
+    });
 
+    socket.on("GetAllbrands", (payload) => {
+        asyncGetBrandsinRetail(mongoclient, socket, payload)
+    })
+    
 })
