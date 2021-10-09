@@ -213,12 +213,12 @@ export async function asyncGetStock(mongoclient, socket, payload, userType) {
         // brandID: email of brand
     // type: "Retailers" or "Brands" string
     try {
-        let inventory = await GetStock(mongoclient, payload, userType);
+        await GetStock(mongoclient, socket, payload, userType);
         // inventory: Array of product objects
             // id
             // quantity
             // name
-        socket.emit("updateStock", inventory);
+        
     } catch (e) {
         console.error(e);
     } finally {
@@ -226,7 +226,7 @@ export async function asyncGetStock(mongoclient, socket, payload, userType) {
     }
 }
 
-async function GetStock(mongoclient, payload, userType) {
+async function GetStock(mongoclient, socket, payload, userType) {
 
     let isRetail;
 
@@ -244,7 +244,7 @@ async function GetStock(mongoclient, payload, userType) {
         let validBrandarray = RETAILER.brandsList.filter(e => e.email === brandEmail);
         if (validBrandarray.length > 0) {
             const BRAND = validBrandarray[0];
-            return BRAND.products;  // Array of product objects
+            socket.emit("updateStock", BRAND.products); // Array of product objects
             // TODO: THERE IS NO NAME??? Address this when adding a product to the database from the retailer side...
         } else {
             console.log("No brand found when getting stock");
@@ -253,7 +253,7 @@ async function GetStock(mongoclient, payload, userType) {
         // A brand is requesting its global product quantity
         let brandCollection = mongoclient.db().collection("Brands");
         const BRAND = await getCompany(brandCollection, brandEmail);
-        return BRAND.products;  // Array of product objects
+        socket.emit("updateStock", BRAND.products); // Array of product objects
     }
     
 }
@@ -354,12 +354,12 @@ export async function asyncGetretailerProducts(mongoclient, socket, payload, use
     try {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
-        let retailerList = await GetRetailerProducts(mongoclient, payload, userType);
+        await GetRetailerProducts(mongoclient, socket, payload, userType);
         // retailerList: array of objects
             // name : retailer name,
             // email : retailer email
             // quantity : specific product quantity
-        socket.emit("yourRetailers", retailerList);
+        
     } catch (e) {
         console.error(e);
     } finally {
@@ -367,7 +367,7 @@ export async function asyncGetretailerProducts(mongoclient, socket, payload, use
     }
 }
 
-async function GetRetailerProducts(mongoclient, payload, userType) {
+async function GetRetailerProducts(mongoclient, socket, payload, userType) {
 
     // Check if the thing calling this is a brand or a retailer
     // If there are issues, double check the checkType function in server.js
@@ -393,8 +393,12 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
 
     let retailerList = [];
 
+    let counter = 0;
+    let maxCounter = DB_BRAND_RETAILER.length
+
     DB_BRAND_RETAILER.forEach(async (retailer) => {
         // Check if the caller is a retailer, and ignore itself
+        counter++;
         if (isRetail && (retailer === selfEmail)) {
             // Do nothing
         } else {
@@ -418,8 +422,11 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
                 }
             }
         }
+        if (counter === maxCounter) {
+            socket.emit("yourRetailers", retailerList);
+        }
     })
-    return retailerList;
+    // return retailerList;
 }
 
 export async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
@@ -428,11 +435,11 @@ export async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
     try {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
-        let brandList = await GetBrandsinRetail(mongoclient, payload);
+        await GetBrandsinRetail(mongoclient, socket, payload);
         // brandList:
             // name
             // email
-        socket.emit("yourBrands", brandList);
+        
     } catch (e) {
         console.error(e);
     } finally {
@@ -440,9 +447,10 @@ export async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
     }
 }
 
-async function GetBrandsinRetail(mongoclient, payload) {
+async function GetBrandsinRetail(mongoclient, socket, payload) {
     // Function to return the brands associated with the retailer
     // Payload: retailer ID
+    console.log("Requesting Brands by a retailer: " + payload);
     let retailCollection = mongoclient.db().collection("Retailers");
     let brandCollection = mongoclient.db().collection("Brands");
 
@@ -453,20 +461,32 @@ async function GetBrandsinRetail(mongoclient, payload) {
     // });
 
     const DBBRANDS = RETAILER.brandsList;
+    // console.log("Aloha")
+    // console.log(DBBRANDS)
 
     let brandList = []
 
+    let counter = 0;
+    let maxCounter = DBBRANDS.length;
+
     DBBRANDS.forEach(async (brand) => {
+        console.log(brand)
         let brandEmail = brand.email;
         let currBrand = await getCompany(brandCollection, brandEmail);
         let someBrand = {
             name : currBrand.name,
             email : brandEmail
         }
+        // console.log(someBrand)
         brandList.push(someBrand);
+        counter++;
+        if (counter === maxCounter) {
+            console.log(brandList);
+            socket.emit("yourBrands", brandList);
+            return brandList;
+        }
     });
-
-    return brandList;
+    
 }
 
 export async function asyncWritetoCollection(mongoclient, payload, collectionName) {
@@ -492,6 +512,7 @@ async function writeTocollection(mongoclient, payload, collectionName) {
 
 
 // Function to iterate through some collection and get a list
+// THIS WILL NOT WORK CUZ OF FOREACH BEING ASYNC AND SOCKET HAVEN'T FIXED
 export async function asyncIteratecollection(mongoclient, socket, collectionName) {
     try {
         let payload = await iterateCollection(mongoclient, collectionName);
@@ -522,7 +543,7 @@ async function getCompany(collection, uniqueID) {
     if (COMPANY) {
         return COMPANY;
     } else {
-        console.log("Company not found");
+        console.log("Company not found, looking for " + uniqueID);
         return null;
     }
     

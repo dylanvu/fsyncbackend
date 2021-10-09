@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
     console.log(io.sockets.adapter.rooms);
 
     // On connection, emit an event back to verify that the connection has been made
-    socket.emit("debugConnection", "If you can see this, you can hear me!");
+    // socket.emit("debugConnection", "If you can see this, you can hear me!");
 
     // Test emission recieve and response
     socket.on("testEmit", (emitMessage) => {
