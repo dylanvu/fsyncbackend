@@ -4,7 +4,7 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
-import { asyncIteratecollection, asyncWritetoCollection, asyncGetBrandsinRetail, asyncGetretailerProducts } from "./mongodb"
+import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer } from "./mongodb"
 import GenerateUniqueRandom from "./randomID"
 
 dotenv.config();
@@ -58,10 +58,17 @@ io.on('connection', (socket) => {
         // Payload:
         // selfEmail: String
         // productID: Integer
-        // brandEmail: String
+        // brandID: String
         // Type: Whether it's a brand or not, string?
         let userType = checkType(payload.type);
         asyncGetretailerProducts(mongoclient, socket, payload, userType);
+    })
+
+    socket.on("getStock", (payload) => {
+        // Payload:
+        // retailID: email of retailer
+        // brandID: email of brand
+        asyncGetStock(mongoclient, socket, payload);
     })
 
     // <---------------- RETAILER SPECIFIC SOCKET EVENTS ----------------------->
@@ -75,15 +82,21 @@ io.on('connection', (socket) => {
     // Update quantity for a retailer (and globally)
     socket.on("updateQuantity", (payload) => {
         // Payload:
-        // productID : id of product to modify
-        // brandEmail : email of brand
-        // email: retailer email
-        // newQuantity: new quantity
+            // productID : id of product to modify
+            // brandID : email of brand
+            // email: retailer email
+            // newQuantity: new quantity
         asyncModifyQuantity(mongoclient, payload);
-    })
+    });
 
-    
-    
+    // <---------------- BRAND SPECIFIC SOCKET EVENTS ----------------------->
+    socket.on("addRetailer", (payload) => {
+        // Payload:
+            // retailID : email of Retailer
+            // brandID : email of brand
+        asyncAddRetailer(mongoclient, payload);
+    });
+
 })
 
 function checkType(clientType) {

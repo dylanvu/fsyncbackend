@@ -1,11 +1,106 @@
 // let brandCollection = mongoclient.db().collection("Brands");
 // let retailCollection = mongoclient.db().collection("Retailers");
 
+async function asyncAddRetailer(mongoclient, payload) {
+    // Function to add retailer to brand database and to retailer database
+    // Payload:
+            // retailID : email of Retailer
+            // brandID : email of brand
+    try {
+        await AddRetailer(mongoclient, payload);
+    } catch (e) {
+        console.error(e);
+    } finally {
+        // pass
+    }
+}
+
+async function AddRetailer(mongoclient, payload) {
+
+    let brandEmail = payload.brandID;
+    let retailEmail = payload.retailID;
+
+    let brandCollection = mongoclient.db().collection("Brands");
+    let retailCollection = mongoclient.db().collection("Retailers");
+
+    // Add retailer on brand database
+    // First check if the retailer has already been added
+    const BRAND = await getCompany(brandCollection, brandEmail);
+    const RETAILER_LIST = BRAND.retailerEmails;
+
+    if (RETAILER_LIST.includes(retailEmail)) {
+        console.log("Trying to add a retailer that already exists in brand");
+    } else {
+        const BRAND_QUERY = { email : brandEmail }
+        const updateBrandRetailer = {
+            $push: { "retailerEmails" : retailEmail }
+        }
+        const BRAND_UPDATE_RESULT = await brandCollection.updateOne(BRAND_QUERY, updateBrandRetailer);
+
+        // Add brand on retailer end
+        // Check if the brand is already in the retailer end
+
+        const RETAILER = await getCompany(retailCollection, retailEmail);
+        // Check if it was found:
+        if (RETAILER) {
+            const RETAIL_QUERY = {email : retailEmail}
+            const updateRetailerBrands = {
+                $push : {
+                    "brandsList" : {
+                        "email" : brandEmail,
+                        "products" : [{}]
+                    }
+                }
+            }
+            const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, updateRetailerBrands);
+        } else {
+            console.log("Adding retailer but wasn't found");
+        }
+    }
+
+}
+
+async function asyncGetStock(mongoclient, socket, payload) {
+    // Function to retreive the stock of a specific retailer
+    // Emits out a list of product objects
+    // Payload:
+        // retailID: email of retailer
+        // brandID: email of brand
+    try {
+        let retailerInventory = await GetStock(mongoclient, payload);
+        socket.emit("updateStock", retailerInventory);
+    } catch (e) {
+        console.error(e);
+    } finally {
+        // pass
+    }
+}
+
+async function GetStock(mongoclient, payload) {
+    let retailCollection = mongoclient.db().collection("Retailers");
+
+    let retailerEmail = payload.retailID;
+    let brandEmail = payload.brandID;
+
+    // Get retailer from retailer database/collection
+    const RETAILER = await getCompany(retailCollection, retailerEmail);
+
+    let validBrandarray = RETAILER.brandsList.filter(e => e.email === brandEmail);
+    if (validBrandarray.length > 0) {
+        const BRAND = validBrandarray[0];
+        return BRAND.products; // Array of product objects
+    } else {
+        console.log("No brand found when getting stock");
+    }
+
+    
+}
+
 async function asyncModifyQuantity(mongoclient, payload) {
     // Function to modify the quantity of a product in the database
     // Payload:
         // productID : id of product to modify
-        // brandEmail : email of brand
+        // brandID : email of brand
         // email: retailer email
         // newQuantity: new quantity
     try {
@@ -23,14 +118,14 @@ async function ModifyQuantity(mongoclient, payload) {
 
     let productID = payload.productID;
     let retailerEmail = payload.email;
-    let brandEmail = payload.brandEmail;
+    let brandEmail = payload.brandID;
     let newQuantity = payload.newQuantity;
 
     // Modify the retail side first
     // Get original quantity from database
     let stockInventory = 0;
     let retailProduct = null;
-    retailProduct = await getProductfromRetailandBrand(retailCollection, retailerEmail, brandEmail, productID);
+    retailProduct = await getProductfromRetailandBrand(retailCollection, retailerEmail, brandEmail, productID, true);
     if (retailProduct) {
         stockInventory = retailProduct.quantity;
     }
@@ -86,7 +181,6 @@ async function ModifyQuantity(mongoclient, payload) {
 
     const brandResult = await brandCollection.updateOne(brandQuery, updateBrandquantity, brandOptions);
 
-
 }
 
 async function asyncGetretailerProducts(mongoclient, socket, payload, userType) {
@@ -94,7 +188,7 @@ async function asyncGetretailerProducts(mongoclient, socket, payload, userType) 
     // Payload:
     // selfEmail: String
     // productID: Integer
-    // brandEmail: String
+    // brandID: String
     try {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
@@ -122,7 +216,7 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
     // }
 
     let productID = payload.productID;
-    let brandEmail = payload.brandEmail;
+    let brandEmail = payload.brandID;
 
     let brandCollection = mongoclient.db().collection("Brands");
     let retailCollection = mongoclient.db().collection("Retailers");
@@ -264,21 +358,34 @@ async function getCompany(collection, uniqueID) {
     
 }
 
-async function getProductfromRetailandBrand(retailCollection, retailerID, brandID, productID) {
-    // This function returns a product from the RETAILER INVENTORY, not the BRAND INVENTORY
-    const RETAILER_DB = await getCompany(retailCollection, retailerID);
-    // Double check if the brand is in the retailer
-    let validBrandarray = RETAILER_DB.brandsList.filter(e => e.email === brandID);
-    if (validBrandarray.length > 0) {
-        // Extract the product out if it exists
-        let products = validBrandarray.products.filter(e => e.id === productID);
-        // This means that we have the product in the products array
-        if (products.length > 0) {
-            return products[0]; // Return a product object
+async function getProductfromRetailandBrand(collection, companyID, brandID, productID, isRetail) {
+    // This function returns a product from the RETAILER INVENTORY or a BRAND INVENTORY
+
+    // RETAIL INVENTORY
+
+    const COMPANY = await getCompany(collection, companyID);
+
+    if (isRetail) {
+        // Double check if the brand is in the retailer
+        let validBrandarray = COMPANY.brandsList.filter(e => e.email === brandID);
+        if (validBrandarray.length > 0) {
+            // Extract the product out if it exists
+            let products = validBrandarray.products.filter(e => e.id === productID);
+            // This means that we have the product in the products array
+            if (products.length > 0) {
+                return products[0]; // Return a product object
+            } else {
+                console.log("No valid product found");
+            }
         } else {
-            console.log("No valid product found");
+            console.log("No valid brands found");
         }
+    } else {
+        //BRAND INVENTORY
+        // Extract a product out
+        console.log("Brand side not supported yet")
     }
+    
 }
 
-module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity }
+module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer }
