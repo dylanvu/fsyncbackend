@@ -66,9 +66,11 @@ io.on('connection', (socket) => {
 
     socket.on("getStock", (payload) => {
         // Payload:
-        // retailID: email of retailer
-        // brandID: email of brand
-        asyncGetStock(mongoclient, socket, payload);
+            // retailID: email of retailer
+            // brandID: email of brand
+            // type: "retail" or "brand"
+        let userType = checkType(payload.type);
+        asyncGetStock(mongoclient, socket, payload, userType);
     })
 
     // <---------------- RETAILER SPECIFIC SOCKET EVENTS ----------------------->
