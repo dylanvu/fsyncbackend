@@ -65,17 +65,22 @@ io.on('connection', (socket) => {
     })
 
     // <---------------- RETAILER SPECIFIC SOCKET EVENTS ----------------------->
+
+    // Get a retailer's brands
+    // Function to return the brands associated with the retailer in an object with attributes name and email
     socket.on("GetAllbrands", (payload) => {
         asyncGetBrandsinRetail(mongoclient, socket, payload);
     });
 
-    socket.on("updateQuantity", (payload => {
+    // Update quantity for a retailer (and globally)
+    socket.on("updateQuantity", (payload) => {
         // Payload:
         // productID : id of product to modify
         // brandEmail : email of brand
         // email: retailer email
         // newQuantity: new quantity
-    }))
+        asyncModifyQuantity(mongoclient, payload);
+    })
 
     
     

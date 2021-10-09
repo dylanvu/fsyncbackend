@@ -163,7 +163,7 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
 }
 
 async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
-    // Function to return the brands associated with the retailer
+    // Function to return the brands associated with the retailer in an object with attributes name and email
     // Payload: retailer ID
     try {
         // Connect to MongoDB Cluster
@@ -196,7 +196,11 @@ async function GetBrandsinRetail(mongoclient, payload) {
     DBBRANDS.forEach((brand) => {
         let brandEmail = brand.email;
         let currBrand = await getCompany(brandCollection, brandEmail);
-        brandList.push(currBrand.name);
+        let someBrand = {
+            name : currBrand.name,
+            email : brandEmail
+        }
+        brandList.push(someBrand);
     });
 
     return brandList;
@@ -251,7 +255,13 @@ async function getCompany(collection, uniqueID) {
     const COMPANY = await collection.findOne({
         email: uniqueID
     });
-    return COMPANY
+    if (COMPANY) {
+        return COMPANY;
+    } else {
+        console.log("Company not found");
+        return null;
+    }
+    
 }
 
 async function getProductfromRetailandBrand(retailCollection, retailerID, brandID, productID) {
@@ -265,7 +275,10 @@ async function getProductfromRetailandBrand(retailCollection, retailerID, brandI
         // This means that we have the product in the products array
         if (products.length > 0) {
             return products[0]; // Return a product object
+        } else {
+            console.log("No valid product found");
         }
+    }
 }
 
-module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts}
+module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity }
