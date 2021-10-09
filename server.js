@@ -4,7 +4,7 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
-import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct } from "./mongodb.js"
+import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct, asyncAddProductinRetail } from "./mongodb.js"
 
 dotenv.config();
 
@@ -16,6 +16,7 @@ APP.get('/', (req, res) => res.send('Hello World!'));
 SERVER.listen(PORT, () => console.log(`Backend listening at http://localhost:${PORT}`));
 
 // Connect to MongoDB, you only have to do this once at the beginning
+// .env file REQUIRED to run
 const mongoclient = new mongo.MongoClient(process.env.MONGO_DB_CONNECTION, { useUnifiedTopology: true, useNewUrlParser: true });
 const MongoConnect = async () => {
     try {
@@ -120,6 +121,13 @@ io.on('connection', (socket) => {
         asyncModifyQuantity(mongoclient, payload);
     });
 
+    socket.on("addProductinRetail", (paylod) => {
+        // Payload:
+            // productID
+            // brandID
+            // retailerID
+        asyncAddProductinRetail(mongoclient, payload);
+    })
     // <---------------- BRAND SPECIFIC SOCKET EVENTS ----------------------->
     socket.on("addRetailer", (payload) => {
         // Payload:

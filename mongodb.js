@@ -4,6 +4,64 @@
 import { WelcomeCompany, AddedByBrand, RequestEmail } from "./twilio.js"
 import GenerateUniqueRandom from "./randomID.js"
 
+export async function asyncAddProductinRetail(mongoclient, payload) {
+    // Function to push a product ID into a retailer inventory
+    // Payload:
+        // productID
+        // brandID
+        // retailerID
+    try {
+        await AddProductinRetail(mongoclient, payload);
+    } catch (e) {
+        console.error(e);
+    } finally {
+        // Pass
+    }
+}
+
+async function AddProductinRetail(mongoclient, payload) {
+    let productID = payload.productID;
+    let brandEmail = payload.brandID;
+    let retailEmail = payload.retailerID;
+
+    let brandCollection = mongoclient.db().collection("Brands");
+    let retailCollection = mongoclient.db().collection("Retailers");
+
+    let duplicate = await getProductfromRetailandBrand(retailCollection, retailEmail, brandEmail, productID, true);
+
+    // Check if the product already exists in the stock
+    if (!duplicate) {
+        // If it doesn't, add it in
+        
+        // Check to see if the brand has the product
+
+        let product = await getProductfromRetailandBrand(brandCollection, brandID, brandID, productID, false);
+        if (product) {
+            // If the product exists, push to retailer
+            let productName = product.name;
+            let newProduct = {
+                id: productID,
+                quantity: 0,
+                name: productName
+            }
+            const RETAIL_QUERY = { email : retailEmail }
+            const pushRetailProduct = {
+                $push: { "brandsList.$[brandItem].products" : newProduct }
+            }
+            const retailOptions = {
+                arrayFilters: [{
+                    "brandItem.email" : brandID
+                }]
+            }
+            const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, pushRetailProduct, retailOptions);
+        } else {
+            console.log("Product not found in brand")
+        }
+    } else {
+        console.log("Duplicate item exists")
+    }
+}
+
 export async function asyncRequestProduct(mongoclient, payload, typeObject) {
     // Function to use Twilio API to send an email to request for a product
     // payload:
@@ -201,7 +259,7 @@ async function GetStock(mongoclient, payload, userType) {
 }
 
 export async function asyncModifyQuantity(mongoclient, payload) {
-    // Function to modify the quantity of a product in the database
+    // Function to modify the quantity / update the quantity / update quantity of a product in the database
     // Payload:
         // productID : id of product to modify
         // brandID : email of brand
@@ -483,6 +541,10 @@ async function GetCompanySmart(mongoclient, companyID, type) {
 
 async function getProductfromRetailandBrand(collection, companyID, brandID, productID, isRetail) {
     // This function returns a product from the RETAILER INVENTORY or a BRAND INVENTORY
+    // The object will have:
+        // id : the product ID
+        // quantity: the quantity
+        // name: the name
 
     // RETAIL INVENTORY
 
