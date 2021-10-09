@@ -60,15 +60,16 @@ async function AddRetailer(mongoclient, payload) {
 
 }
 
-async function asyncGetStock(mongoclient, socket, payload) {
+async function asyncGetStock(mongoclient, socket, payload, userType) {
     // Function to retreive the stock of a specific retailer
     // Emits out a list of product objects
     // Payload:
         // retailID: email of retailer
         // brandID: email of brand
+    // type: "Retailers" or "Brands" string
     try {
-        let retailerInventory = await GetStock(mongoclient, payload);
-        socket.emit("updateStock", retailerInventory);
+        let inventory = await GetStock(mongoclient, payload, userType);
+        socket.emit("updateStock", inventory);
     } catch (e) {
         console.error(e);
     } finally {
@@ -76,23 +77,34 @@ async function asyncGetStock(mongoclient, socket, payload) {
     }
 }
 
-async function GetStock(mongoclient, payload) {
-    let retailCollection = mongoclient.db().collection("Retailers");
+async function GetStock(mongoclient, payload, userType) {
 
-    let retailerEmail = payload.retailID;
+    let isRetail;
+
+    userType === "Retailers" ? isRetail = true : isRetail = false
+
     let brandEmail = payload.brandID;
 
-    // Get retailer from retailer database/collection
-    const RETAILER = await getCompany(retailCollection, retailerEmail);
-
-    let validBrandarray = RETAILER.brandsList.filter(e => e.email === brandEmail);
-    if (validBrandarray.length > 0) {
-        const BRAND = validBrandarray[0];
-        return BRAND.products; // Array of product objects
+    if (isRetail) {
+        let retailCollection = mongoclient.db().collection("Retailers");
+        let retailerEmail = payload.retailID;
+    
+        // Get retailer from retailer database/collection
+        const RETAILER = await getCompany(retailCollection, retailerEmail);
+    
+        let validBrandarray = RETAILER.brandsList.filter(e => e.email === brandEmail);
+        if (validBrandarray.length > 0) {
+            const BRAND = validBrandarray[0];
+            return BRAND.products;  // Array of product objects
+        } else {
+            console.log("No brand found when getting stock");
+        }
     } else {
-        console.log("No brand found when getting stock");
+        // A brand is requesting its global product quantity
+        let brandCollection = mongoclient.db().collection("Brands");
+        const BRAND = await getCompany(brandCollection, brandEmail);
+        return BRAND.products;  // Array of product objects
     }
-
     
 }
 
@@ -206,8 +218,8 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
     // Check if the thing calling this is a brand or a retailer
     // If there are issues, double check the checkType function in server.js
     let selfEmail = payload.selfEmail;
-    let isRetail;
 
+    let isRetail;
     userType === "Retailers" ? isRetail = true : isRetail = false
     // if (userType == "Retailers") {
     //     isRetail = true;
