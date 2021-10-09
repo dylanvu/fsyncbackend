@@ -39,6 +39,9 @@ io.on('connection', (socket) => {
     // View all sockets in a room
     console.log(io.sockets.adapter.rooms);
 
+    // On connection, emit an event back to verify that the connection has been made
+    socket.emit("debugConnection", "If you can see this, you can hear me!");
+
     // UNIVERSAL SOCKET EVENTS
 
     // Insert new company to database
