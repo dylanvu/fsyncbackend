@@ -4,7 +4,7 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
-import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer } from "./mongodb"
+import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand } from "./mongodb"
 import GenerateUniqueRandom from "./randomID"
 
 dotenv.config();
@@ -106,6 +106,14 @@ io.on('connection', (socket) => {
             // brandID : email of brand
         asyncAddRetailer(mongoclient, payload);
     });
+
+    socket.on("createNewproduct", (payload) => {
+        // Payload:
+            // name : name of product
+            // brandID : email of brand
+
+        
+    })
 
 })
 

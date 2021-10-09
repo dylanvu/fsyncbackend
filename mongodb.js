@@ -2,6 +2,51 @@
 // let retailCollection = mongoclient.db().collection("Retailers");
 
 import { WelcomeCompany, AddedByBrand } from "./twilio"
+import GenerateUniqueRandom from "./randomID"
+
+async function asyncAddNewProductBrand(mongoclient, socket, payload) {
+    // Function to add a new line of products in a brand
+    // Payload:
+        // name : name of product
+        // brandID : email of brand
+    try {
+        await AddNewProductBrand(mongoclient, payload);
+    } catch (e) {
+        console.error(e);
+    } finally {
+        // Pass
+    }
+}
+
+async function AddNewProductBrand(mongoclient, payload) {
+    let brandCollection = mongoclient.db().collection("Brands");
+    let brandEmail = payload.brandID;
+    let productName = payload.name;
+
+    const BRAND = await getCompany(brandCollection, brandEmail);
+    let existingProducts = BRAND.products;
+
+    // Create set of existing product IDs to generate a random unique product ID
+    let productSet = new Set()
+    existingProducts.forEach((product) => {
+        productSet.add(product.id);
+    })
+
+    // Generate unique ID
+    let newID = GenerateUniqueRandom(4, productSet);
+
+    let newProduct = {
+        id : newID,
+        productName : productName,
+        quantity : 0
+    }
+
+    const BRAND_QUERY = { email : brandEmail }
+    const updateBrandProducts = {
+        $push: { "products" : newProduct }
+    }
+    const BRAND_UPDATE_RESULT = await brandCollection.updateOne(BRAND_QUERY, updateBrandProducts);
+}
 
 async function asyncAddRetailer(mongoclient, payload) {
     // Function to add retailer to brand database and to retailer database
@@ -101,6 +146,7 @@ async function GetStock(mongoclient, payload, userType) {
         if (validBrandarray.length > 0) {
             const BRAND = validBrandarray[0];
             return BRAND.products;  // Array of product objects
+            // TODO: THERE IS NO NAME???
         } else {
             console.log("No brand found when getting stock");
         }
@@ -362,7 +408,7 @@ async function iterateCollection(mongoclient, collectionName) {
     return idList;
 }
 
-// <------------ General Use Functions -------------->
+// <------------ Utility Functions -------------->
 async function getCompany(collection, uniqueID) {
     const COMPANY = await collection.findOne({
         email: uniqueID
@@ -393,17 +439,22 @@ async function getProductfromRetailandBrand(collection, companyID, brandID, prod
             if (products.length > 0) {
                 return products[0]; // Return a product object
             } else {
-                console.log("No valid product found");
+                console.log("No valid product found in retail");
             }
         } else {
-            console.log("No valid brands found");
+            console.log("No valid brands found in retail");
         }
     } else {
-        //BRAND INVENTORY
+        // BRAND INVENTORY
         // Extract a product out
-        console.log("Brand side not supported yet")
+        let validProduct = COMPANY.products.filter(e => e.id === productID);
+        if (validProduct.length > 0) {
+            return products[0]
+        } else {
+            console.log("Product not found in brand");
+        }
     }
     
 }
 
-module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer }
+module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand}
