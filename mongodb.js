@@ -96,7 +96,7 @@ async function RequestProduct(mongoclient, payload, typeObject) {
     let askerName = ASKER.name;
     let targetName = TARGET.name;
 
-    await RequestEmail(askerName, askerID, targetName, targetID, payload.productName, payload.productID);
+    await RequestEmail(askerName, askerID, targetName, targetID, payload.productName, payload.productID, typeObject);
 }
 
 export async function asyncAddNewProductBrand(mongoclient, socket, payload) {

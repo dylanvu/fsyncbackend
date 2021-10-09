@@ -3,33 +3,62 @@ import dotenv from 'dotenv'
 
 dotenv.config();
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-export async function RequestEmail(askerName, askerEmail, targetName, targetEmail, productName, productID) {
-    let templateID = "placeholder";
+export async function RequestEmail(askerName, askerEmail, targetName, targetEmail, productName, productID, typeObject) {
+    // TODO: Get brand name, quantity requested
+    // typeObject
+        // target : "Retailers" or "Brands"
+        // asker : same as above ^^^
+    let templates = {
+        brandToretail : "d-028d554c5f1546c3a8e39ead6ff29da8",
+        retailTobrand : "d-30c950a06b8e46afaff11343f7a2b000",
+        retailToretail : "d-ad88ed9189214aeda98e387371541fff"
+    }
 
-    const msg = {
-        to: targetEmail,
-        from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
-        template_Id: templateID,
-        dynamic_template_data: {
-            askerName: askerName,
-            askerEmail: askerEmail,
-            targetName: targetName,
-            productName: productName,
-            productID: productID
+    let templateID;
+    let msg;
+
+    // Figure out which template to use
+    if (typeObject.asker === "Retailers" && typeObject.target === "Brands") {
+        // Retailer to brand
+        templateID = templates.retailTobrand
+        msg = {
+            to: targetEmail,
+            from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+            template_Id: templateID,
+            dynamic_template_data: {
+                retailerName: askerName,
+                brandName: targetName,
+            }
+        }
+    } else if (typeObject.asker === "Brands" && typeObject.target === "Retailers") {
+        // Brand to Retailer
+        templateID = templates.brandToretail;
+        msg = {
+            to: targetEmail,
+            from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+            template_Id: templateID,
+            dynamic_template_data: {
+                retailerName: askerName,
+                brandName: targetName,
+            }
+        }
+    } else {
+        // Just send retail to retail
+        templateID = templates.retailToretail;
+        msg = {
+            to: targetEmail,
+            from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+            template_Id: templateID,
+            dynamic_template_data: {
+                retailerAskname : askerName,
+                retailerName: targetName,
+            }
         }
     }
 
-    sgMail.send(msg)
-        .then(() => {
-            console.log('Email sent')
-            console.log('mail-sent-successfully', {templateId, dynamic_template_data });
-            console.log('response', response);
-        })
-        .catch((error) => {
-            console.error('send-grid-error: ', error.toString());
-        });
+    sgSendmail(sgMail, msg);
 }
 
 export async function AddedByBrand(email, retailerName, brandName) {
@@ -45,15 +74,7 @@ export async function AddedByBrand(email, retailerName, brandName) {
         }
     };
     
-    sgMail.send(msg)
-        .then(() => {
-            console.log('Email sent')
-            console.log('mail-sent-successfully', {templateId, dynamic_template_data });
-            console.log('response', response);
-        })
-        .catch((error) => {
-            console.error('send-grid-error: ', error.toString());
-        });
+    sgSendmail(sgMail, msg);
 }
 
 export async function WelcomeCompany(email, name) {
@@ -71,6 +92,10 @@ export async function WelcomeCompany(email, name) {
         }
     };
     
+    sgSendmail(sgMail, msg);
+}
+
+function sgSendmail(sgMail, msg) {
     sgMail.send(msg)
         .then(() => {
             console.log('Email sent')
