@@ -5,6 +5,33 @@ dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
+export async function RequestEmail(askerName, askerEmail, targetName, targetEmail, productName, productID) {
+    let templateID = "placeholder";
+
+    const msg = {
+        to: targetEmail,
+        from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+        template_Id: templateID,
+        dynamic_template_data: {
+            askerName: askerName,
+            askerEmail: askerEmail,
+            targetName: targetName,
+            productName: productName,
+            productID: productID
+        }
+    }
+
+    sgMail.send(msg)
+        .then(() => {
+            console.log('Email sent')
+            console.log('mail-sent-successfully', {templateId, dynamic_template_data });
+            console.log('response', response);
+        })
+        .catch((error) => {
+            console.error('send-grid-error: ', error.toString());
+        });
+}
+
 export async function AddedByBrand(email, retailerName, brandName) {
     let templateID = "d-4ae1a1749b6b491eb46ee9d5543ccf79";
 

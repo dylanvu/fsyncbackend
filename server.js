@@ -4,7 +4,7 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
-import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand } from "./mongodb.js"
+import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct } from "./mongodb.js"
 
 dotenv.config();
 
@@ -63,14 +63,15 @@ io.on('connection', (socket) => {
     // View valid retailers selling a specific product 
     socket.on("getValidretail", (payload) => {
         // Payload:
-        // selfEmail: String
-        // productID: Integer
-        // brandID: String
-        // Type: Whether it's a brand or not, string?
+            // selfEmail: String
+            // productID: Integer
+            // brandID: String
+            // Type: "retail" or "brand"
         let userType = checkType(payload.type);
         asyncGetretailerProducts(mongoclient, socket, payload, userType);
     })
 
+    // Get stock of a specific retailer or brand
     socket.on("getStock", (payload) => {
         // Payload:
             // retailID: email of retailer
@@ -80,11 +81,29 @@ io.on('connection', (socket) => {
         asyncGetStock(mongoclient, socket, payload, userType);
     })
 
+    // Request a product from a company
+    socket.on("requestProduct", (payload) => {
+        // Payload:
+            // productID
+            // productName
+            // brandID
+            // retailerID
+            // targetType : "brand" or "retail", who is being asked?
+            // requestType : "brand" or "retail", who is asking?
+        let type = {
+            target : checkType(payload.targetType),
+            asker : checkType(payload.requestType)
+        };
+
+        asyncRequestProduct(mongoclient, payload, type)
+    })
+
     // <---------------- RETAILER SPECIFIC SOCKET EVENTS ----------------------->
 
     // Get a retailer's brands
     // Function to return the brands associated with the retailer in an object with attributes name and email
     socket.on("GetAllbrands", (payload) => {
+        // Payload: retailer ID
         asyncGetBrandsinRetail(mongoclient, socket, payload);
     });
 
@@ -110,8 +129,7 @@ io.on('connection', (socket) => {
         // Payload:
             // name : name of product
             // brandID : email of brand
-
-        
+        asyncAddNewProductBrand(mongoclient, socket, payload);
     })
 
 })

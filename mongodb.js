@@ -4,6 +4,28 @@
 import { WelcomeCompany, AddedByBrand } from "./twilio.js"
 import GenerateUniqueRandom from "./randomID.js"
 
+export async function asyncRequestProduct(mongoclient, payload, typeObject) {
+    // Function to use Twilio API to send an email to request for a product
+    // payload:
+        // productID
+        // brandID
+        // retailerID
+    // typeObject
+        // target : "Retailers" or "Brands"
+        // asker : same as above ^^^
+    try {
+        await RequestProduct(mongoclient, payload, typeObject);
+    } catch(e) {
+        console.error(e)
+    } finally {
+        // Pass
+    }
+}
+
+async function RequestProduct(mongoclient, payload, typeObject) {
+    
+}
+
 export async function asyncAddNewProductBrand(mongoclient, socket, payload) {
     // Function to add a new line of products in a brand
     // Payload:
@@ -119,6 +141,10 @@ export async function asyncGetStock(mongoclient, socket, payload, userType) {
     // type: "Retailers" or "Brands" string
     try {
         let inventory = await GetStock(mongoclient, payload, userType);
+        // inventory: Array of product objects
+            // id
+            // quantity
+            // name
         socket.emit("updateStock", inventory);
     } catch (e) {
         console.error(e);
@@ -146,7 +172,7 @@ async function GetStock(mongoclient, payload, userType) {
         if (validBrandarray.length > 0) {
             const BRAND = validBrandarray[0];
             return BRAND.products;  // Array of product objects
-            // TODO: THERE IS NO NAME???
+            // TODO: THERE IS NO NAME??? Address this when adding a product to the database from the retailer side...
         } else {
             console.log("No brand found when getting stock");
         }
@@ -249,13 +275,17 @@ async function ModifyQuantity(mongoclient, payload) {
 export async function asyncGetretailerProducts(mongoclient, socket, payload, userType) {
     // Function to return the brands associated with the retailer
     // Payload:
-    // selfEmail: String
-    // productID: Integer
-    // brandID: String
+        // selfEmail: String
+        // productID: Integer
+        // brandID: String
     try {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
         let retailerList = await GetRetailerProducts(mongoclient, payload, userType);
+        // retailerList: array of objects
+            // name : retailer name,
+            // email : retailer email
+            // quantity : specific product quantity
         socket.emit("yourRetailers", retailerList);
     } catch (e) {
         console.error(e);
@@ -326,6 +356,9 @@ export async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
         let brandList = await GetBrandsinRetail(mongoclient, payload);
+        // brandList:
+            // name
+            // email
         socket.emit("yourBrands", brandList);
     } catch (e) {
         console.error(e);
