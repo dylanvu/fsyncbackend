@@ -87,12 +87,15 @@ io.on('connection', (socket) => {
             // productID
             // productName
             // brandID
-            // retailerID
-            // targetType : "brand" or "retail", who is being asked?
-            // requestType : "brand" or "retail", who is asking?
+            // target : companyObject
+                // id : email
+                // type: "brand" or "retail", who is being asked?
+            // asker : companyObject
+                // id : email
+                // type: "brand" or "retail", who is asking?
         let type = {
-            target : checkType(payload.targetType),
-            asker : checkType(payload.requestType)
+            target : checkType(payload.target.type),
+            asker : checkType(payload.asker.type)
         };
 
         asyncRequestProduct(mongoclient, payload, type)

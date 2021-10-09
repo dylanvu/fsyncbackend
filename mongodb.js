@@ -1,15 +1,21 @@
 // let brandCollection = mongoclient.db().collection("Brands");
 // let retailCollection = mongoclient.db().collection("Retailers");
 
-import { WelcomeCompany, AddedByBrand } from "./twilio.js"
+import { WelcomeCompany, AddedByBrand, RequestEmail } from "./twilio.js"
 import GenerateUniqueRandom from "./randomID.js"
 
 export async function asyncRequestProduct(mongoclient, payload, typeObject) {
     // Function to use Twilio API to send an email to request for a product
     // payload:
         // productID
+        // productName
         // brandID
-        // retailerID
+        // target : companyObject
+            // id : email
+            // type: "brand" or "retail", who is being asked?
+        // asker : companyObject
+            // id : email
+            // type: "brand" or "retail", who is asking?
     // typeObject
         // target : "Retailers" or "Brands"
         // asker : same as above ^^^
@@ -23,7 +29,16 @@ export async function asyncRequestProduct(mongoclient, payload, typeObject) {
 }
 
 async function RequestProduct(mongoclient, payload, typeObject) {
-    
+    let askerID = payload.asker.id;
+    let targetID = payload.target.id;
+    const ASKER = await GetCompanySmart(mongoclient, askerID, typeObject.asker);
+    const TARGET = await GetCompanySmart(mongoclient, targetID, typeObject.target);
+
+    // Pull out the names
+    let askerName = ASKER.name;
+    let targetName = TARGET.name;
+
+    await RequestEmail(askerName, askerID, targetName, targetID, payload.productName, payload.productID);
 }
 
 export async function asyncAddNewProductBrand(mongoclient, socket, payload) {
@@ -453,6 +468,17 @@ async function getCompany(collection, uniqueID) {
         return null;
     }
     
+}
+
+async function GetCompanySmart(mongoclient, companyID, type) {
+    // Like get company, but feed in a type and the ID
+    if (type === "Retailers" || type === "retail") {
+        let retailCollection = mongoclient.db().collection("Retailers");
+        return getCompany(retailCollection, companyID);
+    } else {
+        let brandCollection = mongoclient.db().collection("Brands");
+        return getCompany(brandCollection, companyID);
+    }
 }
 
 async function getProductfromRetailandBrand(collection, companyID, brandID, productID, isRetail) {
