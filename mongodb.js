@@ -146,8 +146,8 @@ async function AddNewProductBrand(mongoclient, payload) {
 export async function asyncAddRetailer(mongoclient, payload) {
     // Function to add retailer to brand database and to retailer database
     // Payload:
-            // retailID : email of Retailer
-            // brandID : email of brand
+        // retailID : email of Retailer
+        // brandID : email of brand
     try {
         await AddRetailer(mongoclient, payload);
     } catch (e) {
