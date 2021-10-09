@@ -4,8 +4,8 @@ import express from 'express'
 import { Server } from "socket.io";
 import http from 'http'
 
-import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand } from "./mongodb"
-import GenerateUniqueRandom from "./randomID"
+import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand } from "./mongodb.js"
+import GenerateUniqueRandom from "./randomID.js"
 
 dotenv.config();
 

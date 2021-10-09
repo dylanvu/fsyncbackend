@@ -5,7 +5,7 @@ dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
-async function AddedByBrand(email, retailerName, brandName) {
+export async function AddedByBrand(email, retailerName, brandName) {
     let templateID = "d-4ae1a1749b6b491eb46ee9d5543ccf79";
 
     const msg = {
@@ -29,7 +29,7 @@ async function AddedByBrand(email, retailerName, brandName) {
         });
 }
 
-async function WelcomeCompany(email, name) {
+export async function WelcomeCompany(email, name) {
     // Use a dynamic template
     // THIS WORKS: https://medium.com/@arjunbastola/sending-emails-using-node-js-and-sendgrid-5ad4dea7cf44
     // Example usage: WelcomeRetailer("dylanvu9@gmail.com", "Dylan")
@@ -55,4 +55,4 @@ async function WelcomeCompany(email, name) {
         });
 }
 
-module.exports = { WelcomeCompany, AddedByBrand }
+// module.exports = { WelcomeCompany, AddedByBrand }

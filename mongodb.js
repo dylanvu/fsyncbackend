@@ -1,10 +1,10 @@
 // let brandCollection = mongoclient.db().collection("Brands");
 // let retailCollection = mongoclient.db().collection("Retailers");
 
-import { WelcomeCompany, AddedByBrand } from "./twilio"
-import GenerateUniqueRandom from "./randomID"
+import { WelcomeCompany, AddedByBrand } from "./twilio.js"
+import GenerateUniqueRandom from "./randomID.js"
 
-async function asyncAddNewProductBrand(mongoclient, socket, payload) {
+export async function asyncAddNewProductBrand(mongoclient, socket, payload) {
     // Function to add a new line of products in a brand
     // Payload:
         // name : name of product
@@ -48,7 +48,7 @@ async function AddNewProductBrand(mongoclient, payload) {
     const BRAND_UPDATE_RESULT = await brandCollection.updateOne(BRAND_QUERY, updateBrandProducts);
 }
 
-async function asyncAddRetailer(mongoclient, payload) {
+export async function asyncAddRetailer(mongoclient, payload) {
     // Function to add retailer to brand database and to retailer database
     // Payload:
             // retailID : email of Retailer
@@ -110,7 +110,7 @@ async function AddRetailer(mongoclient, payload) {
 
 }
 
-async function asyncGetStock(mongoclient, socket, payload, userType) {
+export async function asyncGetStock(mongoclient, socket, payload, userType) {
     // Function to retreive the stock of a specific retailer
     // Emits out a list of product objects
     // Payload:
@@ -159,7 +159,7 @@ async function GetStock(mongoclient, payload, userType) {
     
 }
 
-async function asyncModifyQuantity(mongoclient, payload) {
+export async function asyncModifyQuantity(mongoclient, payload) {
     // Function to modify the quantity of a product in the database
     // Payload:
         // productID : id of product to modify
@@ -246,7 +246,7 @@ async function ModifyQuantity(mongoclient, payload) {
 
 }
 
-async function asyncGetretailerProducts(mongoclient, socket, payload, userType) {
+export async function asyncGetretailerProducts(mongoclient, socket, payload, userType) {
     // Function to return the brands associated with the retailer
     // Payload:
     // selfEmail: String
@@ -290,7 +290,7 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
 
     let retailerList = [];
 
-    DB_BRAND_RETAILER.forEach((retailer) => {
+    DB_BRAND_RETAILER.forEach(async (retailer) => {
         // Check if the caller is a retailer, and ignore itself
         if (isRetail && (retailer === selfEmail)) {
             // Do nothing
@@ -319,7 +319,7 @@ async function GetRetailerProducts(mongoclient, payload, userType) {
     return retailerList;
 }
 
-async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
+export async function asyncGetBrandsinRetail(mongoclient, socket, payload) {
     // Function to return the brands associated with the retailer in an object with attributes name and email
     // Payload: retailer ID
     try {
@@ -350,7 +350,7 @@ async function GetBrandsinRetail(mongoclient, payload) {
 
     let brandList = []
 
-    DBBRANDS.forEach((brand) => {
+    DBBRANDS.forEach(async (brand) => {
         let brandEmail = brand.email;
         let currBrand = await getCompany(brandCollection, brandEmail);
         let someBrand = {
@@ -363,7 +363,7 @@ async function GetBrandsinRetail(mongoclient, payload) {
     return brandList;
 }
 
-async function asyncWritetoCollection(mongoclient, payload, collectionName) {
+export async function asyncWritetoCollection(mongoclient, payload, collectionName) {
     // Function to add a new company to MongoDB
     try {
         // Connect to MongoDB Cluster
@@ -386,7 +386,7 @@ async function writeTocollection(mongoclient, payload, collectionName) {
 
 
 // Function to iterate through some collection and get a list
-async function asyncIteratecollection(mongoclient, socket, collectionName) {
+export async function asyncIteratecollection(mongoclient, socket, collectionName) {
     try {
         let payload = await iterateCollection(mongoclient, collectionName);
         socket.emit("someList", payload);
@@ -456,5 +456,3 @@ async function getProductfromRetailandBrand(collection, companyID, brandID, prod
     }
     
 }
-
-module.exports = { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand}
