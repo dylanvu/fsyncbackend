@@ -72,7 +72,9 @@ io.on('connection', (socket) => {
     socket.on("updateQuantity", (payload => {
         // Payload:
         // productID : id of product to modify
+        // brandEmail : email of brand
         // email: retailer email
+        // newQuantity: new quantity
     }))
 
     
