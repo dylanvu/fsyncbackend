@@ -44,13 +44,21 @@ io.on('connection', (socket) => {
     // Insert new company to database
     socket.on("createNewcompany", (payload) => {
         // Payload attributes:
-        // Email
-        // Name
-        // Phone number
-        // Address
-        // Type: Whether it's a brand or not, string?
+            // Email
+            // Name
+            // Phone number
+            // Address
+            // Type: Whether it's a brand or not, string?
         let collectionName = checkType(payload.type);
-        asyncWritetoCollection(mongoclient, payload, collectionName);
+        let databasePayload = {
+            name: payload.name,
+            phoneNumber: payload.phoneNumber,
+            email: payload.email,
+            address: payload.address,
+            retailerEmails: [],
+            products: []
+        }
+        asyncWritetoCollection(mongoclient, databasePayload, collectionName);
     });
 
     // View valid retailers selling a specific product 

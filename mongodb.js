@@ -1,6 +1,8 @@
 // let brandCollection = mongoclient.db().collection("Brands");
 // let retailCollection = mongoclient.db().collection("Retailers");
 
+import { WelcomeCompany, AddedByBrand } from "./twilio"
+
 async function asyncAddRetailer(mongoclient, payload) {
     // Function to add retailer to brand database and to retailer database
     // Payload:
@@ -26,6 +28,7 @@ async function AddRetailer(mongoclient, payload) {
     // Add retailer on brand database
     // First check if the retailer has already been added
     const BRAND = await getCompany(brandCollection, brandEmail);
+    const BRAND_NAME = BRAND.name;
     const RETAILER_LIST = BRAND.retailerEmails;
 
     if (RETAILER_LIST.includes(retailEmail)) {
@@ -43,6 +46,7 @@ async function AddRetailer(mongoclient, payload) {
         const RETAILER = await getCompany(retailCollection, retailEmail);
         // Check if it was found:
         if (RETAILER) {
+            const RETAILER_NAME = RETAILER.name;
             const RETAIL_QUERY = {email : retailEmail}
             const updateRetailerBrands = {
                 $push : {
@@ -53,6 +57,7 @@ async function AddRetailer(mongoclient, payload) {
                 }
             }
             const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, updateRetailerBrands);
+            await AddedByBrand(retailEmail, RETAILER_NAME, BRAND_NAME);
         } else {
             console.log("Adding retailer but wasn't found");
         }
@@ -318,6 +323,7 @@ async function asyncWritetoCollection(mongoclient, payload, collectionName) {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
         await writeTocollection(mongoclient, payload, collectionName);
+        await WelcomeCompany(payload.email, payload.name)
     } catch (e) {
         console.error(e);
     } finally {
