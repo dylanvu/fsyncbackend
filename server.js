@@ -53,19 +53,31 @@ io.on('connection', (socket) => {
     // Insert new company to database
     socket.on("createNewcompany", (payload) => {
         // Payload attributes:
-            // Email
-            // Name
-            // Phone number
-            // Address
-            // Type: Whether it's a brand or not, string?
+            // email
+            // name
+            // phoneNumber
+            // address
+            // type: Whether it's a brand or not, "retail" or "brand"
         let collectionName = checkType(payload.type);
-        let databasePayload = {
-            name: payload.name,
-            phoneNumber: payload.phoneNumber,
-            email: payload.email,
-            address: payload.address,
-            retailerEmails: [],
-            products: []
+        let databasePayload;
+        // Define new company based on type
+        if (collectionName === "Retailers") {
+            databasePayload = {
+                email: payload.email,
+                name: payload.name,
+                phoneNumber: payload.phoneNumber,
+                address: payload.address,
+                brandsList: []
+            }
+        } else {
+            databasePayload = {
+                email: payload.email,
+                name: payload.name,
+                phoneNumber: payload.phoneNumber,
+                address: payload.address,
+                retailerEmails: [],
+                products: []
+            }
         }
         asyncWritetoCollection(mongoclient, databasePayload, collectionName);
     });
@@ -130,7 +142,7 @@ io.on('connection', (socket) => {
         asyncModifyQuantity(mongoclient, payload);
     });
 
-    socket.on("addProductinRetail", (paylod) => {
+    socket.on("addProductinRetail", (payload) => {
         // Payload:
             // productID
             // brandID
@@ -155,7 +167,7 @@ io.on('connection', (socket) => {
 })
 
 function checkType(clientType) {
-    if (clientType == "retail") {
+    if (clientType === "retail" || clientType === "Retailers") {
         return "Retailers";
     } else {
         return "Brands";

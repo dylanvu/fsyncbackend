@@ -26,19 +26,23 @@ async function AddProductinRetail(mongoclient, payload) {
 
     let brandCollection = mongoclient.db().collection("Brands");
     let retailCollection = mongoclient.db().collection("Retailers");
-
+    console.log(payload)
     let duplicate = await getProductfromRetailandBrand(retailCollection, retailEmail, brandEmail, productID, true);
-
+    // console.log("obtained")
     // Check if the product already exists in the stock
     if (!duplicate) {
         // If it doesn't, add it in
-        
+        console.log("No duplicate in retailer inventory")
         // Check to see if the brand has the product
 
-        let product = await getProductfromRetailandBrand(brandCollection, brandID, brandID, productID, false);
+        let product = await getProductfromRetailandBrand(brandCollection, brandEmail, brandEmail, productID, false);
         if (product) {
             // If the product exists, push to retailer
+            // console.log("Product in brand inventory")
+            // console.log(product)
+            // console.log(product.name)
             let productName = product.name;
+            console.log(productName)
             let newProduct = {
                 id: productID,
                 quantity: 0,
@@ -50,10 +54,11 @@ async function AddProductinRetail(mongoclient, payload) {
             }
             const retailOptions = {
                 arrayFilters: [{
-                    "brandItem.email" : brandID
+                    "brandItem.email" : brandEmail
                 }]
             }
             const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, pushRetailProduct, retailOptions);
+            console.log("Addition to retailer successful")
         } else {
             console.log("Product not found in brand")
         }
@@ -100,7 +105,7 @@ async function RequestProduct(mongoclient, payload, typeObject) {
 }
 
 export async function asyncAddNewProductBrand(mongoclient, socket, payload) {
-    // Function to add a new line of products in a brand
+    // Function to add a new line of products in a brand / new product / add new product
     // Payload:
         // name : name of product
         // brandID : email of brand
@@ -132,7 +137,7 @@ async function AddNewProductBrand(mongoclient, payload) {
 
     let newProduct = {
         id : newID,
-        productName : productName,
+        name : productName,
         quantity : 0
     }
 
@@ -202,6 +207,7 @@ async function AddRetailer(mongoclient, payload) {
                 }
             }
             const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, updateRetailerBrands);
+            // TODO: Reenable Twilio
             console.log("Insert Twilio email. (No email actually sent). This was sent to " + retailEmail + " by " + BRAND_NAME);
             // await AddedByBrand(retailEmail, RETAILER_NAME, BRAND_NAME);
         } else {
@@ -496,12 +502,14 @@ async function GetBrandsinRetail(mongoclient, socket, payload) {
 }
 
 export async function asyncWritetoCollection(mongoclient, payload, collectionName) {
+    // Create new company
     // Function to add a new company to MongoDB
     try {
         // Connect to MongoDB Cluster
         //await mongoclient.connect();
+        // Payload attributes:
+            // See JSON sample
         await writeTocollection(mongoclient, payload, collectionName);
-        await WelcomeCompany(payload.email, payload.name)
     } catch (e) {
         console.error(e);
     } finally {
@@ -513,6 +521,9 @@ async function writeTocollection(mongoclient, payload, collectionName) {
     // See: https://docs.mongodb.com/drivers/node/current/fundamentals/crud/write-operations/insert/
     let collection = await mongoclient.db().collection(collectionName);
     collection.insertOne(payload);
+    // TODO: reeenable Twilio
+    console.log("Twilio substitute. This welcome email was sent to " + payload.email);
+    // await WelcomeCompany(payload.email, payload.name);
     // console.log(collection)
 }
 
@@ -549,7 +560,7 @@ async function getCompany(collection, uniqueID) {
     if (COMPANY) {
         return COMPANY;
     } else {
-        console.log("Company not found, looking for " + uniqueID);
+        console.log("Company not found, looking for " + uniqueID + " company. If blank, it's null.");
         return null;
     }
     
@@ -580,14 +591,17 @@ async function getProductfromRetailandBrand(collection, companyID, brandID, prod
     if (isRetail) {
         // Double check if the brand is in the retailer
         let validBrandarray = COMPANY.brandsList.filter(e => e.email === brandID);
+        // console.log("SUP", validBrandarray, validBrandarray.products)
         if (validBrandarray.length > 0) {
             // Extract the product out if it exists
-            let products = validBrandarray.products.filter(e => e.id === productID);
+            let products = validBrandarray[0].products.filter(e => e.id === productID);
             // This means that we have the product in the products array
+            // console.log("HI", products)
             if (products.length > 0) {
                 return products[0]; // Return a product object
             } else {
                 console.log("No valid product found in retail");
+                return null;
             }
         } else {
             console.log("No valid brands found in retail");
@@ -597,9 +611,10 @@ async function getProductfromRetailandBrand(collection, companyID, brandID, prod
         // Extract a product out
         let validProduct = COMPANY.products.filter(e => e.id === productID);
         if (validProduct.length > 0) {
-            return products[0]
+            return validProduct[0]
         } else {
             console.log("Product not found in brand");
+            return null;
         }
     }
     
