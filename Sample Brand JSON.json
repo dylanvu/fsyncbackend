@@ -1,0 +1,33 @@
+{
+  "_id": {
+        "$oid": "61627dcffe75f04b7f84b1b9"
+    },
+  "name": "BRAND SoNY",
+  "phoneNumber": "(555) 555-5555",
+  "email" : "sonylomoBrand@gmail.com",
+  "address": "1234 Generic Street, City, State, Zip",
+  "retailerEmails" : [
+  ],
+  
+  "products" : [{
+    "id" : 1111,
+    "name" : "T-Shirt with SoNY Logo",
+    "globalQuantity" : 0
+  }, {
+    "id" : 2222,
+    "name" : "Hoodie with SoNY Logo",
+    "globalQuantity" : 0
+  }, {
+    "id" : 3333,
+    "name" : "Pants with SoNY Logo",
+    "globalQuantity" : 0
+  }, {
+    "id" : 4444,
+    "name" : "Shorts with SoNY Logo",
+    "globalQuantity" : 0
+  }, {
+    "id" : 5555,
+    "name" : "Long Sleeve SoNY Shirt",
+    "globalQuantity" : 0
+  }]
+}

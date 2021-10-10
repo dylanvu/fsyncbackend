@@ -1,0 +1,29 @@
+{
+  "_id": {
+        "$oid": "61627f51fe75f04b7f84b1bb"
+    },
+  "email" : "sonylomo1@gmail.com",
+  "name": "Sonia Store",
+  "phoneNumber": "(555) 555-5555",
+  "address": "1234 Generic Street, City, State, Zip",
+  "brandsList" : [{
+    "email" : "sonylomoBrand@gmail.com",
+    "products" : [{
+      "id" : 1111,
+      "quantity" : 0,
+      "name" : "T-shirt with SoNY Logo"
+    }, {
+      "id" : 2222,
+      "quantity" : 0,
+      "name" : "Hoodie with SoNY Logo"
+    }, {
+      "id" : 3333,
+      "quantity" : 0,
+      "name" : "Pants with SoNY Logo"
+    }, {
+      "id" : 4444,
+      "quantity" : 0,
+      "name" : "Shorts with SoNY Logo"
+    }]
+  }]
+}
