@@ -162,6 +162,11 @@ async function AddRetailer(mongoclient, payload) {
     let brandEmail = payload.brandID;
     let retailEmail = payload.retailID;
 
+    if (retailEmail === "") {
+        console.log("retail email is blank, check addRetailer? Or user error.");
+        return
+    }
+
     let brandCollection = mongoclient.db().collection("Brands");
     let retailCollection = mongoclient.db().collection("Retailers");
 
@@ -197,7 +202,8 @@ async function AddRetailer(mongoclient, payload) {
                 }
             }
             const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, updateRetailerBrands);
-            await AddedByBrand(retailEmail, RETAILER_NAME, BRAND_NAME);
+            console.log("Insert Twilio email. (No email actually sent). This was sent to " + retailEmail + " by " + BRAND_NAME);
+            // await AddedByBrand(retailEmail, RETAILER_NAME, BRAND_NAME);
         } else {
             console.log("Adding retailer but wasn't found");
         }
