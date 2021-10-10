@@ -5,6 +5,21 @@ dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+export async function ReturnOrder(retailerName, brandName, brandEmail) {
+    let templateID = "d-8875eb84bf174244810c13ea30e22cfe";
+    const msg = {
+        to: brandEmail, 
+        from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+        template_Id: templateID,
+        dynamic_template_data: {
+            retailerName: retailerName,
+            brandName: brandName
+        }
+    };
+    
+    sgSendmail(sgMail, msg);
+}
+
 export async function RequestEmail(askerName, askerEmail, targetName, targetEmail, productName, productID, typeObject) {
     // TODO: Get brand name, quantity requested
     // typeObject

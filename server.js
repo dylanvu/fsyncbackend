@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import http from 'http'
 
 import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct, asyncAddProductinRetail } from "./mongodb.js"
+import {ReturnOrder} from "./twilio"
 
 dotenv.config();
 
@@ -148,6 +149,14 @@ io.on('connection', (socket) => {
             // brandID
             // retailerID
         asyncAddProductinRetail(mongoclient, payload);
+    })
+
+    socket.on("returnNotice", (payload) => {
+        // Payload:
+            // brandName
+            // brandEmail
+            // retailName
+        ReturnOrder(retailName, brandName, brandEmail);
     })
     // <---------------- BRAND SPECIFIC SOCKET EVENTS ----------------------->
     socket.on("addRetailer", (payload) => {
