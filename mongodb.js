@@ -119,6 +119,7 @@ export async function asyncAddNewProductBrand(mongoclient, socket, payload) {
 }
 
 async function AddNewProductBrand(mongoclient, payload) {
+    console.log(payload)
     let brandCollection = mongoclient.db().collection("Brands");
     let brandEmail = payload.brandID;
     let productName = payload.name;
@@ -131,9 +132,11 @@ async function AddNewProductBrand(mongoclient, payload) {
     existingProducts.forEach((product) => {
         productSet.add(product.id);
     })
+    console.log(productSet)
 
     // Generate unique ID
     let newID = GenerateUniqueRandom(4, productSet);
+    console.log("New productID is: " + newID)
 
     let newProduct = {
         id : newID,
@@ -146,6 +149,7 @@ async function AddNewProductBrand(mongoclient, payload) {
         $push: { "products" : newProduct }
     }
     const BRAND_UPDATE_RESULT = await brandCollection.updateOne(BRAND_QUERY, updateBrandProducts);
+    console.log("New product upload successful")
 }
 
 export async function asyncAddRetailer(mongoclient, payload) {
@@ -560,7 +564,7 @@ async function getCompany(collection, uniqueID) {
     if (COMPANY) {
         return COMPANY;
     } else {
-        console.log("Company not found, looking for " + uniqueID + " company. If blank, it's null.");
+        console.log("Company not found, looking for " + uniqueID + ". If blank, it's null.");
         return null;
     }
     

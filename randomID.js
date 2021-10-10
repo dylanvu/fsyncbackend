@@ -1,19 +1,20 @@
 const GenerateUniqueRandom = (length, setOfid) => {
-    let uniqueID;
+    let uniqueID = "";
     if (!(setOfid instanceof Set)) {
         console.log("Input is not a set, check randomID.js");
-        return "ZZZZZZZZZ"
+        return "ZZZZ"
     }
 
-    let validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let validChars = '0123456789';
     let numValidchars = validChars.length;
     for (let i = 0; i < length; i++) {
-        uniqueID = validChars.charAt(Math.random() * numValidchars);
+        uniqueID += validChars.charAt(Math.random() * numValidchars);
     }
-    while (!setOfid.has(uniqueID)) {
+    while (setOfid.has(uniqueID)) {
+        console.log("set contains the id. Trying again")
         uniqueID = "";
         for (let i = 0; i < length; i++) {
-            uniqueID = validChars.charAt(Math.random() * numValidchars);
+            uniqueID += validChars.charAt(Math.random() * numValidchars);
         }
     }
     return uniqueID
