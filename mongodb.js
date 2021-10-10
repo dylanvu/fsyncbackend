@@ -249,6 +249,7 @@ async function GetStock(mongoclient, socket, payload, userType) {
     userType === "Retailers" ? isRetail = true : isRetail = false
 
     let brandEmail = payload.brandID;
+    console.log(brandEmail)
 
     if (isRetail) {
         let retailCollection = mongoclient.db().collection("Retailers");
@@ -269,6 +270,8 @@ async function GetStock(mongoclient, socket, payload, userType) {
         // A brand is requesting its global product quantity
         let brandCollection = mongoclient.db().collection("Brands");
         const BRAND = await getCompany(brandCollection, brandEmail);
+        console.log(BRAND)
+        console.log(BRAND.products)
         socket.emit("updateStock", BRAND.products); // Array of product objects
     }
     

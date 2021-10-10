@@ -5,7 +5,7 @@ import { Server } from "socket.io";
 import http from 'http'
 
 import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct, asyncAddProductinRetail } from "./mongodb.js"
-import {ReturnOrder} from "./twilio"
+import {ReturnOrder} from "./twilio.js"
 
 dotenv.config();
 
@@ -50,6 +50,13 @@ io.on('connection', (socket) => {
     })
 
     // UNIVERSAL SOCKET EVENTS
+
+    // Get name
+    // socket.on("getName", (payload) => {
+    //     // Payload:
+    //         // email
+    //         //
+    // })
 
     // Insert new company to database
     socket.on("createNewcompany", (payload) => {
