@@ -60,7 +60,7 @@ async function AddProductinRetail(mongoclient, payload) {
             const RETAIL_UPDATE_RESULT = await retailCollection.updateOne(RETAIL_QUERY, pushRetailProduct, retailOptions);
             console.log("Addition to retailer successful")
         } else {
-            console.log("Product not found in brand")
+            console.log("Product not found in brand AddProductinRetail")
         }
     } else {
         console.log("Duplicate item exists")
@@ -141,7 +141,7 @@ async function AddNewProductBrand(mongoclient, payload) {
     let newProduct = {
         id : newID,
         name : productName,
-        quantity : 0
+        globalQuantity : 0
     }
 
     const BRAND_QUERY = { email : brandEmail }
@@ -329,12 +329,14 @@ async function ModifyQuantity(mongoclient, payload) {
     }
 
     const retailOptions = {
-        arrayFiters: [{
-            "brandItem.email" : brandEmail,
+        arrayFilters: [{
+            "brandItem.email" : brandEmail
+        },{
             "productItem.id" : productID
         }]
     }
     const retailResult = await retailCollection.updateOne(retailQuery, updateRetailQuantity, retailOptions);
+    console.log("Retail quantity change successful")
 
     // Modify the brand side
 
@@ -343,6 +345,9 @@ async function ModifyQuantity(mongoclient, payload) {
     let currProduct = DB_BRAND.products.filter(e => e.id === productID);
     if (currProduct.length > 0) {
         globalQuantity = currProduct[0].globalQuantity;
+        console.log(globalQuantity)
+    } else {
+        console.log("No valid product found in brand to modify quantity")
     }
 
     const brandQuery = {email : brandEmail}
@@ -358,6 +363,7 @@ async function ModifyQuantity(mongoclient, payload) {
     }
 
     const brandResult = await brandCollection.updateOne(brandQuery, updateBrandquantity, brandOptions);
+    console.log("Brand global quantity change successful")
 
 }
 
@@ -613,6 +619,8 @@ async function getProductfromRetailandBrand(collection, companyID, brandID, prod
     } else {
         // BRAND INVENTORY
         // Extract a product out
+        console.log(COMPANY)
+        console.log(productID)
         let validProduct = COMPANY.products.filter(e => e.id === productID);
         if (validProduct.length > 0) {
             return validProduct[0]
