@@ -5,11 +5,29 @@ dotenv.config();
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+const fromEmail = 'HackHarvardInventory@gmail.com'
+
+export async function LogInEmail(email, name, loginLink) {
+    let templateID = "SOME_PLACEHOLDER_HERE";
+    const msg = {
+        to: email,
+        from: { name: "F•sync", email: fromEmail },
+        template_Id: templateID,
+        dynamic_template_data: {
+            name: name,
+            loginLink: loginLink
+        }
+    }
+
+    console.log("Pretend this is a login email");
+    // sgSendmail(sgMail, msg)
+}
+
 export async function ReturnOrder(retailerName, brandName, brandEmail) {
     let templateID = "d-8875eb84bf174244810c13ea30e22cfe";
     const msg = {
         to: brandEmail, 
-        from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+        from: { name: "F•sync", email: fromEmail },
         template_Id: templateID,
         dynamic_template_data: {
             retailerName: retailerName,
@@ -81,7 +99,7 @@ export async function AddedByBrand(email, retailerName, brandName) {
 
     const msg = {
         to: email, 
-        from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+        from: { name: "F•sync", email: fromEmail },
         template_Id: templateID,
         dynamic_template_data: {
             retailerName: retailerName,
@@ -100,7 +118,7 @@ export async function WelcomeCompany(email, name) {
 
     const msg = {
         to: email, 
-        from: { name: "F•sync", email: 'HackHarvardInventory@gmail.com' },
+        from: { name: "F•sync", email: fromEmail },
         template_Id: templateID,
         dynamic_template_data: {
             retailerName: name

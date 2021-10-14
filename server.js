@@ -5,7 +5,7 @@ import { Server } from "socket.io";
 import http from 'http'
 
 import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct, asyncAddProductinRetail } from "./mongodb.js"
-import {ReturnOrder} from "./twilio.js"
+import {ReturnOrder, LogInEmail} from "./twilio.js"
 
 import { GenerateToken, GenerateJWT } from "./token.js"
 
@@ -59,6 +59,40 @@ io.on('connection', (socket) => {
     //         // email
     //         //
     // })
+
+    // Log in request
+    socket.on("logInrequest", (payload) => {
+        // payload:
+            // email: an email address to send the login email to
+            // type: the type of user requesting to log in: "retail" or "brand"
+
+        // First, check to see if the email exists in the database and get the name
+        let userType = checkType(payload.type);
+        let name = "PLACEHOLDER NAME HERE";
+
+        // Function here
+
+
+        // Then, create a set of existing tokens from our backend
+        // Perhaps omit this for security?
+        // Database function here
+        let tokenSet = new Set();
+        let idSet = new Set();
+
+        // Then, use it to generate a unique id and token
+        let tokenArray = GenerateToken(tokenSet, idSet);
+        let newToken = tokenArray[0];
+        let newTokenID = tokenArray[1];
+        
+        // Add the token, id, and the email to the database
+        // Database function here
+
+        // Generate a dynamic URL
+        let LOGIN_URL = `https://www.fsync.com/auth/token=${newToken}&id=${newTokenID}`; // Double check this later
+
+        // Send this URL to the email
+        await LogInEmail(payload, name, LOGIN_URL);
+    })
 
     // Insert new company to database
     socket.on("createNewcompany", (payload) => {
