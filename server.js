@@ -61,7 +61,7 @@ io.on('connection', (socket) => {
     // })
 
     // Log in request
-    socket.on("logInrequest", (payload) => {
+    socket.on("loginEmailRequest", (payload) => {
         // payload:
             // email: an email address to send the login email to
             // type: the type of user requesting to log in: "retail" or "brand"
@@ -81,14 +81,16 @@ io.on('connection', (socket) => {
 
         // Then, use it to generate a unique id and token
         let tokenArray = GenerateToken(tokenSet, idSet);
-        let newToken = tokenArray[0];
-        let newTokenID = tokenArray[1];
+        let newHashedToken = tokenArray[0];
+        let unhashed = tokenArray[1];
+        let newTokenID = tokenArray[2];
         
-        // Add the token, id, and the email to the database
+        // Add the hashedToken, id, and the email to the database
         // Database function here
 
-        // Generate a dynamic URL
-        let LOGIN_URL = `https://www.fsync.com/auth/token=${newToken}&id=${newTokenID}`; // Double check this later
+        // Generate a dynamic URL using the unhashed token so we can verify it later
+        // TODO: Research whether this is the best way, whether keeping the salt exposed is good
+        let LOGIN_URL = `https://www.fsync.com/auth/token=${unhashed}&id=${newTokenID}`; // Double check this later
 
         // Send this URL to the email
         await LogInEmail(payload, name, LOGIN_URL);

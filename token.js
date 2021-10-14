@@ -1,21 +1,26 @@
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
-function GenerateToken(tokenSet, idSet) {
+async function GenerateToken(tokenSet, idSet) {
     // Return two strings, one is the token and one is the id
     // Do some error checking
     if (!(tokenSet instanceof Set)) {
         console.log("TokenSet is not a set, check token.js");
-        return ["ZZZZ", "ZZZZ"];
+        return ["ZZZZ", "ZZZZ", "ZZZZ"];
     }
     if (!(idSet instanceof Set)) {
         console.log("IDSet is not a set, check token.js");
-        return ["ZZZZ", "ZZZZ"];
+        return ["ZZZZ", "ZZZZ", "ZZZZ"];
     }
-    let token = GetRandomUnique(tokenSet)
+    const unHashedtoken = GetRandomUnique(tokenSet);
 
-    let id = GetRandomUnique(idSet)
-    return [token, id];
+    // Hash the token for additional security
+    const tokenSalt = process.env.SUPER_DUPER_SECRET_SALT;
+    // const tokenSalt = bcrypt.genSaltSync();
+    const tokenHash = crypt.hashSync(unHashedtoken, tokenSalt);
+    let id = GetRandomUnique(idSet);
+    return [tokenHash, unHashedtoken,id];
 }
 
 function GenerateJWT(payload) {
