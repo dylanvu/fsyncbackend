@@ -7,6 +7,8 @@ import http from 'http'
 import { asyncWritetoCollection, asyncIteratecollection, asyncGetBrandsinRetail, asyncGetretailerProducts, asyncModifyQuantity, asyncGetStock, asyncAddRetailer, asyncAddNewProductBrand, asyncRequestProduct, asyncAddProductinRetail } from "./mongodb.js"
 import {ReturnOrder} from "./twilio.js"
 
+import GenerateToken from "./token.js"
+
 dotenv.config();
 
 const APP = express();
