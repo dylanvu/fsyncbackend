@@ -93,7 +93,7 @@ io.on('connection', (socket) => {
         let LOGIN_URL = `https://www.fsync.com/auth/token=${unhashed}&id=${newTokenID}`; // Double check this later
 
         // Send this URL to the email
-        await LogInEmail(payload, name, LOGIN_URL);
+        LogInEmail(payload, name, LOGIN_URL);
     })
 
     // Insert new company to database

@@ -30,7 +30,6 @@ function GenerateJWT(payload) {
 
 function GetRandomUnique(uniqueSet) {
     let token = "";
-    let token = "";
     crypto.randomBytes(48, function(err, buffer) {
         token = buffer.toString('hex')
     });
